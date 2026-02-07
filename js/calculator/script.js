@@ -1,5 +1,5 @@
-var a = +prompt("").trim();
-var b = prompt("").trim();
-var c = +prompt("").trim();
+var a = +prompt("Введите цифру").trim();
+var b = prompt("Введите знак (+ - * /)").trim();
+var c = +prompt("Введите цифру").trim();
 
-console.log(eval(a + b + c));
+console.log(eval(a + b + c +));
