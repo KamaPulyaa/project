@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <title>С Днём Рождения, бро!</title>
+    <!-- Google Fonts: элегантный шрифт для заголовка и чистый санс-сериф для текста -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Базовый сброс и настройка слоёв */
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: "Inter", sans-serif;
+        background: linear-gradient(
+          135deg,
+          #e8eef2 0%,
+          #e2e4ea 50%,
+          #edf0f5 100%
+        );
+      }
+
+      /* Canvas three.js занимает весь экран, но остаётся на заднем плане */
+      #canvas-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      /* Контент поверх сцены */
+      .content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        text-align: center;
+        padding: 1.5rem;
+        box-sizing: border-box;
+        backdrop-filter: blur(2px);
+      }
+
+      /* Блок с поздравлением — полупрозрачное стекло, элегантность */
+      .greeting-card {
+        background: rgba(240, 244, 248, 0.7);
+        backdrop-filter: blur(12px);
+        border-radius: 2rem;
+        padding: 2rem 2.5rem;
+        box-shadow:
+          0 20px 40px rgba(0, 0, 0, 0.05),
+          0 5px 12px rgba(0, 0, 0, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        transition: transform 0.3s ease;
+        max-width: 90vw;
+        width: auto;
+      }
+
+      @media (max-width: 640px) {
+        .greeting-card {
+          padding: 1.5rem 1.8rem;
+          border-radius: 1.5rem;
+        }
+      }
+
+      /* Основной заголовок */
+      .birthday-title {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(2.4rem, 10vw, 5.2rem);
+        font-weight: 600;
+        color: #3b4b5e;
+        margin: 0 0 0.5rem 0;
+        letter-spacing: -0.01em;
+        text-shadow: 0 2px 5px rgba(150, 160, 170, 0.2);
+        animation: fadeInUp 0.9s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+      }
+
+      /* Элегантный декоративный разделитель */
+      .divider {
+        width: 80px;
+        height: 2px;
+        background: #9aadbc;
+        margin: 0.8rem auto 1.2rem auto;
+        border-radius: 4px;
+        opacity: 0.6;
+      }
+
+      /* Текст пожелания */
+      .wish-text {
+        font-size: clamp(1rem, 4vw, 1.3rem);
+        font-weight: 400;
+        color: #2e3b45;
+        margin: 1rem 0 0.5rem 0;
+        line-height: 1.5;
+        max-width: 550px;
+        letter-spacing: 0.01em;
+      }
+
+      .sub-wish {
+        font-size: 0.9rem;
+        color: #5d6f7e;
+        margin-top: 1.2rem;
+        font-weight: 400;
+        letter-spacing: 0.3px;
+        border-top: 1px dashed #cbd7e2;
+        display: inline-block;
+        padding-top: 0.8rem;
+      }
+
+      /* Имя получателя */
+      .recipient-name {
+        font-family: "Playfair Display", serif;
+        font-weight: 500;
+        font-size: 1.2rem;
+        color: #6c7e8f;
+        margin-top: 1rem;
+        font-style: normal;
+      }
+
+      /* Анимация появления */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Декоративная иконка */
+      .icon {
+        margin-top: 1.5rem;
+        font-size: 1.2rem;
+        opacity: 0.7;
+        color: #7c8e9c;
+        pointer-events: none;
+      }
+
+      /* Адаптация для очень маленьких экранов */
+      @media (max-width: 480px) {
+        .greeting-card {
+          padding: 1.2rem 1.5rem;
+        }
+        .wish-text {
+          max-width: 280px;
+        }
+      }
+
+      /* Небольшой эффект для улучшения восприятия на мобильных */
+      @media (hover: hover) {
+        .greeting-card:hover {
+          transform: scale(1.01);
+          background: rgba(245, 248, 250, 0.8);
+          transition: 0.25s;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Контейнер для 3D-сцены Three.js -->
+    <div id="canvas-container"></div>
+
+    <!-- Основной поздравительный контент — изменён под парня-подростка -->
+    <div class="content">
+      <div class="greeting-card">
+        <h1 class="birthday-title">С Днём<br />Рождения!</h1>
+        <div class="divider"></div>
+        <div class="wish-text">
+          Желаю гениальных идей, смелых решений<br />
+          и верных друзей, которые поддержат в любом деле.
+        </div>
+        <div class="sub-wish">✦ энергии, драйва и только твоих побед ✦</div>
+        <div class="icon">➤ ✦ ➤</div>
+      </div>
+    </div>
+
+    <!-- Подключаем Three.js из CDN -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.128.0/build/three.module.js"
+        }
+      }
+    </script>
+
+    <script type="module">
+      import * as THREE from "three";
+
+      // --- Инициализация сцены с прозрачным фоном для наложения на градиент CSS ---
+      const container = document.getElementById("canvas-container");
+      const scene = new THREE.Scene();
+      scene.background = null;
+
+      // Настройка камеры
+      const camera = new THREE.PerspectiveCamera(
+        45,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000,
+      );
+      camera.position.set(0, 1.5, 12);
+      camera.lookAt(0, 0, 0);
+
+      // Рендерер с альфа-каналом
+      const renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true,
+      });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setClearColor(0x000000, 0);
+      container.appendChild(renderer.domElement);
+
+      // --- Создание текстуры мягкой точки (круглый градиент) ---
+      function createSoftParticleTexture() {
+        const canvas = document.createElement("canvas");
+        canvas.width = 32;
+        canvas.height = 32;
+        const ctx = canvas.getContext("2d");
+        ctx.beginPath();
+        ctx.arc(16, 16, 16, 0, 2 * Math.PI);
+        ctx.fillStyle = "white";
+        ctx.fill();
+        const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+        gradient.addColorStop(0, "rgba(150, 190, 210, 1)");
+        gradient.addColorStop(0.4, "rgba(130, 170, 190, 0.85)");
+        gradient.addColorStop(0.7, "rgba(110, 150, 170, 0.5)");
+        gradient.addColorStop(1, "rgba(100, 140, 160, 0)");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 32, 32);
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+        return texture;
+      }
+
+      const particleTexture = createSoftParticleTexture();
+
+      // ---- ОСНОВНАЯ СИСТЕМА ЧАСТИЦ: облако в холодновато-приглушённых тонах (более нейтрально) ----
+      const particleCount = 1600;
+      const positions = new Float32Array(particleCount * 3);
+      const colors = new Float32Array(particleCount * 3);
+
+      // Новая цветовая палитра: стальной розовый, небесно-серый, пыльная лаванда, приглушённый персик
+      const colorPalette = [
+        new THREE.Color(0xa8c0d0),
+        new THREE.Color(0xbacee0),
+        new THREE.Color(0xc5d6e6),
+        new THREE.Color(0xd4dfeb),
+        new THREE.Color(0xc0cad9),
+        new THREE.Color(0xb2c2d4),
+      ];
+
+      for (let i = 0; i < particleCount; i++) {
+        let r = 1.8 + Math.random() * 3.8;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        const x = r * Math.sin(phi) * Math.cos(theta) * 1.1;
+        const y = r * Math.sin(phi) * Math.sin(theta) * 0.9 + 0.4;
+        const z = r * Math.cos(phi) * 1.05;
+
+        positions[i * 3] = x;
+        positions[i * 3 + 1] = y;
+        positions[i * 3 + 2] = z;
+
+        const colorIdx = Math.floor(Math.random() * colorPalette.length);
+        let baseColor = colorPalette[colorIdx];
+        const brightness = 0.7 + (r / 6.5) * 0.5;
+        const finalColor = baseColor.clone().multiplyScalar(brightness);
+
+        colors[i * 3] = finalColor.r;
+        colors[i * 3 + 1] = finalColor.g;
+        colors[i * 3 + 2] = finalColor.b;
+      }
+
+      const particleGeometry = new THREE.BufferGeometry();
+      particleGeometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(positions, 3),
+      );
+      particleGeometry.setAttribute(
+        "color",
+        new THREE.BufferAttribute(colors, 3),
+      );
+
+      const particleMaterial = new THREE.PointsMaterial({
+        size: 0.18,
+        map: particleTexture,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.85,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+
+      const particleSystem = new THREE.Points(
+        particleGeometry,
+        particleMaterial,
+      );
+
+      // --- Вращающееся кольцо из мелких искр (акцент) ---
+      const ringParticleCount = 400;
+      const ringPositions = new Float32Array(ringParticleCount * 3);
+      const ringColorsArray = new Float32Array(ringParticleCount * 3);
+
+      const ringRadius = 3.6;
+      for (let i = 0; i < ringParticleCount; i++) {
+        const angle = (i / ringParticleCount) * Math.PI * 2;
+        const yOffset = Math.sin(angle * 3) * 0.2;
+        const x = Math.cos(angle) * ringRadius;
+        const z = Math.sin(angle) * ringRadius;
+        const y = yOffset + 0.2;
+
+        ringPositions[i * 3] = x;
+        ringPositions[i * 3 + 1] = y;
+        ringPositions[i * 3 + 2] = z;
+
+        const mixFactor = (Math.sin(angle) + 1) / 2;
+        const colorRing = new THREE.Color(0xb0c4d6).lerp(
+          new THREE.Color(0xcbdbe8),
+          mixFactor,
+        );
+        ringColorsArray[i * 3] = colorRing.r;
+        ringColorsArray[i * 3 + 1] = colorRing.g;
+        ringColorsArray[i * 3 + 2] = colorRing.b;
+      }
+
+      const ringGeometry = new THREE.BufferGeometry();
+      ringGeometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(ringPositions, 3),
+      );
+      ringGeometry.setAttribute(
+        "color",
+        new THREE.BufferAttribute(ringColorsArray, 3),
+      );
+
+      const ringMaterial = new THREE.PointsMaterial({
+        size: 0.12,
+        map: particleTexture,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.7,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+
+      const ringPoints = new THREE.Points(ringGeometry, ringMaterial);
+
+      // --- Крупные "звездные" частицы для глубины ---
+      const bigStarCount = 80;
+      const starPositions = new Float32Array(bigStarCount * 3);
+      const starColors = new Float32Array(bigStarCount * 3);
+
+      for (let i = 0; i < bigStarCount; i++) {
+        const radiusStar = 4.5 + Math.random() * 2.2;
+        const thetaStar = Math.random() * Math.PI * 2;
+        const phiStar = Math.acos(2 * Math.random() - 1);
+        const xStar = radiusStar * Math.sin(phiStar) * Math.cos(thetaStar);
+        const yStar =
+          radiusStar * Math.sin(phiStar) * Math.sin(thetaStar) * 0.8;
+        const zStar = radiusStar * Math.cos(phiStar);
+
+        starPositions[i * 3] = xStar;
+        starPositions[i * 3 + 1] = yStar;
+        starPositions[i * 3 + 2] = zStar;
+
+        const warmColor = new THREE.Color(0xbdd0e0).lerp(
+          new THREE.Color(0xa2bbcf),
+          Math.random(),
+        );
+        starColors[i * 3] = warmColor.r;
+        starColors[i * 3 + 1] = warmColor.g;
+        starColors[i * 3 + 2] = warmColor.b;
+      }
+
+      const starGeometry = new THREE.BufferGeometry();
+      starGeometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(starPositions, 3),
+      );
+      starGeometry.setAttribute(
+        "color",
+        new THREE.BufferAttribute(starColors, 3),
+      );
+      const starMaterial = new THREE.PointsMaterial({
+        size: 0.22,
+        map: particleTexture,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.6,
+        blending: THREE.AdditiveBlending,
+      });
+      const starPoints = new THREE.Points(starGeometry, starMaterial);
+
+      const mainGroup = new THREE.Group();
+      mainGroup.add(particleSystem);
+      mainGroup.add(starPoints);
+
+      scene.add(mainGroup);
+      scene.add(ringPoints);
+
+      // Лёгкий туман
+      scene.fog = new THREE.FogExp2(0xeef2f6, 0.012);
+
+      // --- АНИМАЦИЯ ---
+      let time = 0;
+
+      window.addEventListener("resize", onWindowResize, false);
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        time += 0.008;
+
+        mainGroup.rotation.y += 0.0018;
+        mainGroup.rotation.x = Math.sin(time * 0.2) * 0.08;
+        mainGroup.rotation.z = Math.cos(time * 0.17) * 0.05;
+
+        ringPoints.rotation.y += 0.004;
+        ringPoints.rotation.x = Math.sin(time * 0.5) * 0.1;
+        ringPoints.rotation.z = Math.cos(time * 0.4) * 0.05;
+
+        camera.position.x += (0 - camera.position.x) * 0.05;
+        camera.position.y +=
+          (Math.sin(time * 0.2) * 0.03 - camera.position.y) * 0.05;
+        camera.lookAt(0, 0.2, 0);
+
+        renderer.render(scene, camera);
+      }
+
+      animate();
+
+      // Освещение для объёма
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambientLight);
+      const fillLight = new THREE.PointLight(0xb8cfdf, 0.5);
+      fillLight.position.set(2, 3, 4);
+      scene.add(fillLight);
+      const backLight = new THREE.PointLight(0x9db7c7, 0.4);
+      backLight.position.set(-2, 1, -3);
+      scene.add(backLight);
+
+      mainGroup.rotation.x = 0.1;
+      ringPoints.rotation.x = 0.2;
+
+      console.log("Атмосферная сцена для настоящего пацана загружена");
+    </script>
+  </body>
+</html>
